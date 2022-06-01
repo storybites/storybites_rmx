@@ -31,8 +31,8 @@ export default function Stories() {
         <Outlet />
       </div>
       <div className="mr-4 h-full w-full">
-        {/* <Map /> */}
-        <div>map goes here</div>
+        <Map />
+        {/* <div>map goes here</div> */}
       </div>
     </div>
   );
