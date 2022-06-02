@@ -1,0 +1,21 @@
+{
+    "editor.formatOnSave": true,
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.formatOnSave": false
+    },
+    "editor.rulers": [120],
+    "search.useIgnoreFiles": true,
+    "prettier.configPath": ".prettierrc",
+    "editor.formatOnType": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false
+}
