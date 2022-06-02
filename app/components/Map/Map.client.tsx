@@ -6,7 +6,7 @@ import {
     Popup,
     TileLayer as _TileLayer,
     useMap,
-    // useMapEvents,
+    useMapEvents,
     ZoomControl,
 } from "react-leaflet";
 import { usePosition } from "use-position";
@@ -14,13 +14,14 @@ import lottie from "lottie-web";
 import loadingMap from "../../assets/lottie/finding_location.json";
 import type { Stories } from "@prisma/client";
 import { useNavigate, useParams } from "@remix-run/react";
+import type { LatLngBounds } from "leaflet";
 
-function TileLayer() {
-    // const map = useMapEvents({
-    //     // moveend: function (a) {
-    //     //     console.log(map.getBounds());
-    //     // },
-    // });
+function TileLayer({ onUpdateLocation }: { onUpdateLocation: (bounds: LatLngBounds) => void }) {
+    const map = useMapEvents({
+        moveend: function (a) {
+            onUpdateLocation(map.getBounds());
+        },
+    });
 
     return (
         <_TileLayer
@@ -46,7 +47,7 @@ const Marker = ({ isOpen, story }: IMarker) => {
         if (ref) {
             if (isOpen) {
                 ref.openPopup();
-                map.flyTo({ lat: story.lat, lng: story.long });
+                map.flyTo({ lat: story.lat, lng: story.long }, 15);
             } else {
                 ref.closePopup();
             }
@@ -72,7 +73,13 @@ const Marker = ({ isOpen, story }: IMarker) => {
         </_Marker>
     );
 };
-const MapContainer = ({ stories }: { stories: Stories[] }) => {
+const MapContainer = ({
+    stories,
+    onUpdateLocation,
+}: {
+    stories: Stories[];
+    onUpdateLocation: (bounds: LatLngBounds) => void;
+}) => {
     const loadingMapContainer = useRef<any>(null);
     const { latitude, longitude } = usePosition(false);
     const params = useParams();
@@ -90,17 +97,18 @@ const MapContainer = ({ stories }: { stories: Stories[] }) => {
     return (
         <>
             {(!latitude || !longitude) && (
-                <div className="ml- flex h-full w-3/4 items-center justify-center" style={{ marginLeft: "25%" }}>
-                    <div className="h-2/5 w-2/5" ref={loadingMapContainer}></div>
+                <div className=" flex h-full w-full items-center justify-center">
+                    <div className="hidden w-1/5 sm:block"></div>
+                    <div className="h-full w-full sm:h-2/5 sm:w-2/5" ref={loadingMapContainer}></div>
                 </div>
             )}
             {latitude && longitude && (
                 <_MapContainer center={[latitude, longitude]} zoom={15} scrollWheelZoom={true} zoomControl={false}>
-                    <TileLayer />
+                    <TileLayer onUpdateLocation={onUpdateLocation} />
                     {stories.map((story) => {
                         return <Marker isOpen={params.story === story.id} key={story.id} story={story} />;
                     })}
-                    <ZoomControl position="bottomright" />
+                    <ZoomControl position="topright" />
                 </_MapContainer>
             )}
         </>

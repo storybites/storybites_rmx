@@ -1,14 +1,15 @@
-import { Navbar, ThemeIcon, Title } from "@mantine/core";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Outlet, useFetcher, useParams } from "@remix-run/react";
+import { useFetcher, useParams } from "@remix-run/react";
+import type { LatLngBounds } from "leaflet";
 import { useEffect } from "react";
-import { Lamp2 } from "tabler-icons-react";
+import { BottomSheet } from "react-spring-bottom-sheet";
 import { usePosition } from "use-position";
 import MapContainer from "~/components/Map/Map.client";
-import StoryItem from "~/components/StoryList/StoryList";
+import StoriesPage from "~/components/StoryPane/StoryPane";
 import useClientComponent from "~/hooks/useClientComponent";
-import type { Stories } from "~/models/stories.server";
+import useDebouncedCallback from "~/hooks/useDebounceCallback";
+import type { GetStories, Stories } from "~/models/stories.server";
 import { getStories } from "~/models/stories.server";
 
 export const action: ActionFunction = async ({ request }) => {
@@ -16,11 +17,30 @@ export const action: ActionFunction = async ({ request }) => {
 
     switch (request.method) {
         case "POST": {
+            let payload: GetStories | null = null;
+
             const latitude = body.get("latitude");
             const longitude = body.get("longitude");
             if (latitude && longitude) {
-                const stories = await getStories(parseFloat(latitude.toString()), parseFloat(longitude.toString()));
+                payload = {
+                    coords: "center",
+                    lat: parseFloat(latitude.toString()),
+                    long: parseFloat(longitude.toString()),
+                };
+            }
 
+            const locationBounds = body.get("locationBounds");
+            if (locationBounds) {
+                const data = JSON.parse(locationBounds.toString());
+                payload = {
+                    coords: "bounds",
+                    northEast: data.northEast,
+                    southWest: data.southWest,
+                };
+            }
+
+            if (payload) {
+                const stories = await getStories(payload);
                 return json({
                     stories,
                 });
@@ -32,7 +52,7 @@ export const action: ActionFunction = async ({ request }) => {
     return null;
 };
 
-export default function StoriesPage() {
+export default function StoriesView() {
     const Map = useClientComponent(MapContainer);
     const params = useParams();
     const storiesFetcher = useFetcher();
@@ -50,29 +70,46 @@ export default function StoriesPage() {
     }, [latitude, longitude]);
 
     const stories: Stories[] = storiesFetcher.data?.stories ?? [];
+
+    const onUpdateLocation = useDebouncedCallback((bounds: LatLngBounds) => {
+        storiesFetcher.submit(
+            {
+                locationBounds: JSON.stringify({
+                    northEast: {
+                        lat: bounds.getNorthEast().lat,
+                        long: bounds.getNorthEast().lng,
+                    },
+                    southWest: {
+                        lat: bounds.getSouthWest().lat,
+                        long: bounds.getSouthWest().lng,
+                    },
+                }),
+            },
+            { method: "post" }
+        );
+    }, 1500);
+
     return (
-        <div className="h-full w-full bg-white">
-            <div className="absolute top-0 left-0 z-[9999] box-border h-full w-1/5 bg-white">
-                <Navbar p="xs" className="h-full w-full  p-4">
-                    <Navbar.Section className="flex items-center gap-1">
-                        <ThemeIcon color="violet">
-                            <Lamp2 />
-                        </ThemeIcon>
-                        <Title order={2}>Storybites</Title>
-                    </Navbar.Section>
-                    <Navbar.Section grow mt="md">
-                        {!params.story &&
-                            stories.length > 0 &&
-                            stories.map((story) => {
-                                return <StoryItem key={story.id} story={story} />;
-                            })}
-                        <Outlet />
-                    </Navbar.Section>
-                </Navbar>
+        <>
+            <div className="h-full w-full bg-white">
+                <div
+                    className="absolute top-0 left-0 z-[9999] box-border hidden h-full w-1/5 bg-white sm:block"
+                    style={{ minWidth: 300 }}
+                >
+                    <StoriesPage hasStories={!params.story} stories={stories} />
+                </div>
+                <div className="mr-4 h-full w-full">
+                    <Map stories={storiesFetcher.data?.stories ?? []} onUpdateLocation={onUpdateLocation} />
+                </div>
+                <BottomSheet
+                    open
+                    className="block sm:hidden"
+                    blocking={false}
+                    snapPoints={({ minHeight, maxHeight }) => [minHeight, maxHeight - maxHeight / 4]}
+                >
+                    <StoriesPage hasStories={!params.story} stories={stories} />
+                </BottomSheet>
             </div>
-            <div className="mr-4 h-full w-full">
-                <Map stories={storiesFetcher.data?.stories ?? []} />
-            </div>
-        </div>
+        </>
     );
 }

@@ -5,6 +5,7 @@ import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@re
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import cameraCss from "react-html5-camera-photo/build/css/index.css";
 import AudioPlayerCss from "react-h5-audio-player/lib/styles.css";
+import BottomSheetCss from "react-spring-bottom-sheet/dist/style.css";
 
 import { getUser } from "./session.server";
 import styles from "~/styles/global.css";
@@ -15,6 +16,7 @@ export const links: LinksFunction = () => {
         { rel: "stylesheet", href: tailwindStylesheetUrl },
         { rel: "stylesheet", href: cameraCss },
         { rel: "stylesheet", href: AudioPlayerCss },
+        { rel: "stylesheet", href: BottomSheetCss },
         { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" },
     ];
 };

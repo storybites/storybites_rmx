@@ -17,25 +17,47 @@ export async function getStory(id: string): Promise<StoryData | null> {
     return Object.assign({}, story, { imageUrl: imageUrl });
 }
 
-export function getStories(lat?: number, long?: number) {
-    if (lat && long) {
-        const { latMin, latMax, longMin, longMax } = getBoundsFromLatLng(lat, long, 5);
-        return prisma.stories.findMany({
-            where: {
-                lat: {
-                    gte: latMin,
-                    lte: latMax,
-                },
-                long: {
-                    gte: longMin,
-                    lte: longMax,
-                },
-            },
-        });
-    }
+interface IGetStoriesBase {
+    coords: "center" | "bounds";
+}
+
+interface IGetStoriesCenter extends IGetStoriesBase {
+    coords: "center";
+    lat: number;
+    long: number;
+}
+
+interface IGetStoriesBounds extends IGetStoriesBase {
+    coords: "bounds";
+    northEast: {
+        lat: number;
+        long: number;
+    };
+    southWest: {
+        lat: number;
+        long: number;
+    };
+}
+
+export type GetStories = IGetStoriesCenter | IGetStoriesBounds;
+
+export function getStories(coords: GetStories) {
+    const { latMin, latMax, longMin, longMax } =
+        coords.coords === "center"
+            ? getBoundsFromLatLng(coords.lat, coords.long, 5)
+            : getBoundsfromCorners(coords.northEast, coords.southWest);
 
     return prisma.stories.findMany({
-        orderBy: { createdAt: "desc" },
+        where: {
+            lat: {
+                gte: latMin,
+                lte: latMax,
+            },
+            long: {
+                gte: longMin,
+                lte: longMax,
+            },
+        },
     });
 }
 
@@ -47,6 +69,15 @@ function getBoundsFromLatLng(lat: number, long: number, radiusInKm: number) {
         latMax: lat + latChange,
         longMin: long - longChange,
         longMax: long + longChange,
+    };
+}
+
+function getBoundsfromCorners(northEast: IGetStoriesBounds["northEast"], southWest: IGetStoriesBounds["southWest"]) {
+    return {
+        latMin: southWest.lat,
+        latMax: northEast.lat,
+        longMin: southWest.long,
+        longMax: northEast.lat,
     };
 }
 
