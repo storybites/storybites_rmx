@@ -1,15 +1,15 @@
-import { Navbar, Title, useMantineTheme, ThemeIcon } from "@mantine/core";
+import { Navbar, ThemeIcon, Title } from "@mantine/core";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Outlet, useFetcher, useParams } from "@remix-run/react";
 import { useEffect } from "react";
+import { Lamp2 } from "tabler-icons-react";
 import { usePosition } from "use-position";
 import MapContainer from "~/components/Map/Map.client";
 import StoryItem from "~/components/StoryList/StoryList";
 import useClientComponent from "~/hooks/useClientComponent";
 import type { Stories } from "~/models/stories.server";
 import { getStories } from "~/models/stories.server";
-import { Lamp2 } from "tabler-icons-react";
 
 export const action: ActionFunction = async ({ request }) => {
     const body = await request.formData();
