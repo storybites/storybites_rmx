@@ -1,20 +1,45 @@
-import { useParams } from "@remix-run/react";
-import { LoaderFunction } from "@remix-run/server-runtime";
+import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/node";
+import type { StoryData } from "~/models/stories.server";
+import { getStory } from "~/models/stories.server";
+import { Link, useLoaderData } from "@remix-run/react";
+import { Title, Image, Loader, ActionIcon } from "@mantine/core";
+import AudioPlayer from "react-h5-audio-player";
+import { ChevronLeft } from "tabler-icons-react";
+
+type LoaderData = {
+    story: StoryData | null;
+};
 
 export const loader: LoaderFunction = async ({ params }) => {
-    const id = params.story;
-    return json({
-        stories: {id}
-      });
-}
+    if (!params.story) {
+        return json({ story: null });
+    }
 
+    const story = await getStory(params.story);
+
+    return json<LoaderData>({
+        story,
+    });
+};
 
 export default function Story() {
-    const params = useParams();
-    const id = params.story;
+    const { story } = useLoaderData<LoaderData>();
 
-    return <div>
-        { id } hey i am cool
-    </div>
+    return (
+        <div>
+            {story && (
+                <>
+                    <ActionIcon className="flex w-auto justify-start" component={Link} to="/stories">
+                        <ChevronLeft size={14} /> Back to all stories
+                    </ActionIcon>
+                    <Title order={3}>{story.title}</Title>
+                    <Title order={4}>{story.summary}</Title>
+                    <Image width={200} height={120} src={story.imageUrl} withPlaceholder />
+                    <AudioPlayer src={story.audioUrl} showJumpControls={false} />
+                </>
+            )}
+            {!story && <Loader />}
+        </div>
+    );
 }

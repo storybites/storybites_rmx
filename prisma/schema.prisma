@@ -37,3 +37,19 @@ model Note {
   userId String
 }
 
+model Stories {
+  id    String @id @default(cuid())
+  title String
+  summary  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerEmail String
+
+  lat Float
+  long Float
+
+  imageName String
+  audioUrl String
+}
