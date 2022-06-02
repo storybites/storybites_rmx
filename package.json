@@ -13,6 +13,8 @@
     "generate:css": "tailwindcss -o ./app/styles/tailwind.css",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "setup": "prisma migrate dev && prisma db seed",
+    "migrate": "prisma migrate dev",
+    "update-schema": "prisma generate",
     "start": "remix-serve build",
     "start:mocks": "binode --require ./mocks -- @remix-run/serve:remix-serve build",
     "test": "vitest",
@@ -22,7 +24,11 @@
     "typecheck": "tsc -b && tsc -b cypress",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
   },
-  "prettier": {},
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 120,
+    "singleQuote": false
+  },
   "eslintIgnore": [
     "/node_modules",
     "/build",
@@ -45,6 +51,7 @@
     "react-h5-audio-player": "^3.8.4",
     "react-html5-camera-photo": "^1.5.5",
     "react-leaflet": "^4.0.0",
+    "react-spring-bottom-sheet": "^3.4.1",
     "tabler-icons-react": "^1.48.1",
     "tiny-invariant": "^1.2.0",
     "use-position": "^1.0.0",

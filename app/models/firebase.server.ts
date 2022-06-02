@@ -38,10 +38,8 @@ export async function uploadImage(dataUri: string) {
     }
 }
 
-export async function fetchImage(name: string) {
+export async function getImageUrl(name: string) {
     const imageRef = ref(storage, `photos/${name}`);
     const url = await getDownloadURL(imageRef);
     return url;
 }
-
-export default storage;
