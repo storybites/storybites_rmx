@@ -1,5 +1,6 @@
 import { ActionIcon, Box, Button, Center, Image, Input, SegmentedControl } from "@mantine/core";
-import { ActionFunction, redirect } from "@remix-run/node";
+import type { ActionFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { unstable_parseMultipartFormData } from "@remix-run/node";
 import { Form, useTransition } from "@remix-run/react";
 import { useRef, useState } from "react";

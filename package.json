@@ -56,7 +56,6 @@
     "react-html5-camera-photo": "^1.5.5",
     "react-leaflet": "^4.0.0",
     "react-spring-bottom-sheet": "^3.4.1",
-    "react-timer-hook": "^3.0.5",
     "tabler-icons-react": "^1.48.1",
     "tiny-invariant": "^1.2.0",
     "use-position": "^1.0.0",
