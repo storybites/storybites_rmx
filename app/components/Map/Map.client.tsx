@@ -10,8 +10,7 @@ import {
     ZoomControl,
 } from "react-leaflet";
 import { usePosition } from "use-position";
-import lottie from "lottie-web";
-import loadingMap from "../../assets/lottie/finding_location.json";
+import { Loader, Text } from "@mantine/core";
 import type { Stories } from "@prisma/client";
 import { useNavigate, useParams } from "@remix-run/react";
 import type { LatLng, LatLngBounds } from "leaflet";
@@ -105,16 +104,6 @@ const MapContainer = ({
     const [markerLocation, setMarkerLocation] = useState<LatLng | null>(null);
 
     useEffect(() => {
-        lottie.loadAnimation({
-            container: loadingMapContainer.current,
-            renderer: "svg",
-            loop: true,
-            autoplay: true,
-            animationData: loadingMap,
-        });
-    }, []);
-
-    useEffect(() => {
         if (onLocationUpdate && latitude && longitude) {
             onLocationUpdate({ lat: latitude, long: longitude });
         }
@@ -125,7 +114,11 @@ const MapContainer = ({
             {(!latitude || !longitude) && (
                 <div className=" flex h-full w-full items-center justify-center">
                     <div className="hidden w-1/5 sm:block"></div>
-                    <div className="h-full w-full sm:h-2/5 sm:w-2/5" ref={loadingMapContainer}></div>
+                    <div className="flex flex-col items-center justify-center " ref={loadingMapContainer}>
+                        <Loader />
+                        <Text color="gray">Finding location</Text>
+                    </div>
+                    <div className="h-1/5 sm:hidden"></div>
                 </div>
             )}
             {latitude && longitude && (
