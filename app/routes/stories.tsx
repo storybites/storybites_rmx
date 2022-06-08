@@ -96,10 +96,10 @@ export default function StoriesView() {
                     className="absolute top-0 left-0 z-[9999] box-border hidden h-full w-1/5 bg-white sm:block"
                     style={{ minWidth: 300 }}
                 >
-                    <StoriesPage hasStories={!params.story} stories={stories} />
+                    <StoriesPage showStoriesList={!params.story} stories={stories} />
                 </div>
                 <div className="mr-4 h-full w-full">
-                    <Map stories={storiesFetcher.data?.stories ?? []} onUpdateLocation={onUpdateLocation} />
+                    <Map stories={storiesFetcher.data?.stories ?? []} onUpdateLocationBounds={onUpdateLocation} />
                 </div>
                 <BottomSheet
                     open
@@ -107,7 +107,7 @@ export default function StoriesView() {
                     blocking={false}
                     snapPoints={({ minHeight, maxHeight }) => [minHeight, maxHeight - maxHeight / 4]}
                 >
-                    <StoriesPage hasStories={!params.story} stories={stories} />
+                    <StoriesPage showStoriesList={!params.story} stories={stories} />
                 </BottomSheet>
             </div>
         </>

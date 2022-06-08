@@ -9,15 +9,17 @@ import BottomSheetCss from "react-spring-bottom-sheet/dist/style.css";
 
 import { getUser } from "./session.server";
 import styles from "~/styles/global.css";
+import tailwindPreflightCss from "~/styles/scopedTailwindPreflight.css";
 
 export const links: LinksFunction = () => {
     return [
-        { rel: "stylesheet", href: styles },
         { rel: "stylesheet", href: tailwindStylesheetUrl },
+        { rel: "stylesheet", href: tailwindPreflightCss },
         { rel: "stylesheet", href: cameraCss },
         { rel: "stylesheet", href: AudioPlayerCss },
         { rel: "stylesheet", href: BottomSheetCss },
         { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" },
+        { rel: "stylesheet", href: styles },
     ];
 };
 
