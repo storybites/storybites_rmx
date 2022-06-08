@@ -1,7 +1,7 @@
 import { ActionIcon, Box, Button, Center, Image, Input, SegmentedControl } from "@mantine/core";
-import type { ActionFunction } from "@remix-run/node";
+import { ActionFunction, redirect } from "@remix-run/node";
 import { unstable_parseMultipartFormData } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form, useTransition } from "@remix-run/react";
 import { useRef, useState } from "react";
 import Camera, { FACING_MODES, IMAGE_TYPES } from "react-html5-camera-photo";
 import { At, Camera as CameraIcon, CameraRotate, FileDots, H1, H2 } from "tabler-icons-react";
@@ -41,9 +41,7 @@ export const action: ActionFunction = async ({ request }) => {
                     ownerEmail: email,
                     summary,
                 });
-                return {
-                    status: "OK",
-                };
+                return redirect("/stories");
             } catch (e) {
                 console.log(e);
                 return {
@@ -57,9 +55,14 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function NewStory() {
-    const [imageSourceType, setImageSourceType] = useState<"file" | "camera">("file");
+    const transition = useTransition();
+
+    const [imageSourceType, setImageSourceType] = useState<"file" | "camera">("camera");
+    const [cameraMode, setCameraMode] = useState<typeof FACING_MODES.ENVIRONMENT | typeof FACING_MODES.USER>(
+        FACING_MODES.ENVIRONMENT
+    );
     const [imageUrl, setImageUrl] = useState("");
-    const [, setAudioFile] = useState<File | undefined>();
+    const [audioFile, setAudioFile] = useState<File | undefined>();
     const imageInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
     const Map = useClientComponent(MapContainer);
@@ -137,7 +140,7 @@ export default function NewStory() {
                             <Camera
                                 onTakePhotoAnimationDone={handleImageSetting}
                                 isFullscreen={false}
-                                idealFacingMode={FACING_MODES.ENVIRONMENT}
+                                idealFacingMode={cameraMode}
                                 imageType={IMAGE_TYPES.JPG}
                             />
                         )}
@@ -156,7 +159,15 @@ export default function NewStory() {
                         </Button>
                     )}
                     {imageSourceType === "camera" && (
-                        <ActionIcon>
+                        <ActionIcon
+                            onClick={() => {
+                                setCameraMode(
+                                    cameraMode === FACING_MODES.ENVIRONMENT
+                                        ? FACING_MODES.USER
+                                        : FACING_MODES.ENVIRONMENT
+                                );
+                            }}
+                        >
                             <CameraRotate />
                         </ActionIcon>
                     )}
@@ -172,11 +183,23 @@ export default function NewStory() {
                     <input name="audio_file" type="file" ref={audioInputRef} hidden />
                     <input name="lat" value={latLong?.lat ?? "missing"} readOnly hidden />
                     <input name="long" value={latLong?.long ?? "missing"} readOnly hidden />
-                    <Input name="title" icon={<H1 />} placeholder="Story title" />
-                    <Input icon={<H2 />} placeholder="Story summary" maxLength={250} name="summary" />
-                    <Input icon={<At />} placeholder="Your email" name="email" />
+                    <Input name="title" icon={<H1 />} placeholder="Story title" required />
+                    <Input icon={<H2 />} placeholder="Story summary" maxLength={250} name="summary" required />
+                    <Input
+                        icon={<At />}
+                        placeholder="Your email"
+                        name="email"
+                        required
+                        type="email"
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                    />
 
-                    <Button type="submit">Submit Story</Button>
+                    <Button
+                        disabled={!latLong || !imageUrl || !audioFile || transition.state === "submitting"}
+                        type="submit"
+                    >
+                        {transition.state !== "submitting" ? "Submit Story" : "Submitting..."}
+                    </Button>
                 </Form>
             </div>
         </div>
