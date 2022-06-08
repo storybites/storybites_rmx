@@ -14,12 +14,25 @@ import lottie from "lottie-web";
 import loadingMap from "../../assets/lottie/finding_location.json";
 import type { Stories } from "@prisma/client";
 import { useNavigate, useParams } from "@remix-run/react";
-import type { LatLngBounds } from "leaflet";
+import type { LatLng, LatLngBounds } from "leaflet";
 
-function TileLayer({ onUpdateLocation }: { onUpdateLocation: (bounds: LatLngBounds) => void }) {
+function TileLayer({
+    onUpdateLocation,
+    onClickMap,
+}: {
+    onUpdateLocation?: (bounds: LatLngBounds) => void;
+    onClickMap?: (latLong: LatLng) => void;
+}) {
     const map = useMapEvents({
         moveend: function (a) {
-            onUpdateLocation(map.getBounds());
+            if (onUpdateLocation) {
+                onUpdateLocation(map.getBounds());
+            }
+        },
+        click: function (e) {
+            if (onClickMap) {
+                onClickMap(e.latlng);
+            }
         },
     });
 
@@ -38,7 +51,7 @@ interface IMarker {
     story: Stories;
 }
 
-const Marker = ({ isOpen, story }: IMarker) => {
+const StoryMarker = ({ isOpen, story }: IMarker) => {
     const navigate = useNavigate();
     const map = useMap();
 
@@ -75,14 +88,21 @@ const Marker = ({ isOpen, story }: IMarker) => {
 };
 const MapContainer = ({
     stories,
-    onUpdateLocation,
+    onUpdateLocationBounds,
+    markCurrentLocation,
+    markOnClick,
+    onLocationUpdate,
 }: {
     stories: Stories[];
-    onUpdateLocation: (bounds: LatLngBounds) => void;
+    onUpdateLocationBounds?: (bounds: LatLngBounds) => void;
+    onLocationUpdate?: (latLong: { lat: number; long: number }) => void;
+    markCurrentLocation?: boolean;
+    markOnClick?: boolean;
 }) => {
     const loadingMapContainer = useRef<any>(null);
     const { latitude, longitude } = usePosition(false);
     const params = useParams();
+    const [markerLocation, setMarkerLocation] = useState<LatLng | null>(null);
 
     useEffect(() => {
         lottie.loadAnimation({
@@ -94,6 +114,12 @@ const MapContainer = ({
         });
     }, []);
 
+    useEffect(() => {
+        if (onLocationUpdate && latitude && longitude) {
+            onLocationUpdate({ lat: latitude, long: longitude });
+        }
+    }, [latitude, longitude]);
+
     return (
         <>
             {(!latitude || !longitude) && (
@@ -104,10 +130,21 @@ const MapContainer = ({
             )}
             {latitude && longitude && (
                 <_MapContainer center={[latitude, longitude]} zoom={15} scrollWheelZoom={true} zoomControl={false}>
-                    <TileLayer onUpdateLocation={onUpdateLocation} />
+                    <TileLayer
+                        onUpdateLocation={onUpdateLocationBounds}
+                        onClickMap={(latLng) => {
+                            setMarkerLocation(latLng);
+                            if (onLocationUpdate) {
+                                onLocationUpdate({ lat: latLng.lat, long: latLng.lng });
+                            }
+                        }}
+                    />
                     {stories.map((story) => {
-                        return <Marker isOpen={params.story === story.id} key={story.id} story={story} />;
+                        return <StoryMarker isOpen={params.story === story.id} key={story.id} story={story} />;
                     })}
+                    {((markerLocation && markOnClick) || markCurrentLocation) && (
+                        <_Marker position={markerLocation ?? { lat: latitude, lng: longitude }}></_Marker>
+                    )}
                     <ZoomControl position="topright" />
                 </_MapContainer>
             )}

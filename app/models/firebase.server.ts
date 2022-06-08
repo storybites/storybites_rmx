@@ -1,45 +1,69 @@
+import { Storage } from "@google-cloud/storage";
+import type { UploadHandler } from "@remix-run/node";
 import { initializeApp } from "firebase/app";
-import { getDownloadURL, getStorage, ref, uploadString } from "firebase/storage";
+import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
+const FIREBASE_CONFIG = JSON.parse(process.env.FIREBASE_CONFIG ?? "{}");
+const SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_ACCOUNT ?? "{}");
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBwVMX11BGSewiaZ2PpStJ8LF-lvG12048",
-    authDomain: "storybites-qa.firebaseapp.com",
-    projectId: "storybites-qa",
-    storageBucket: "storybites-qa.appspot.com",
-    messagingSenderId: "679971063816",
-    appId: "1:679971063816:web:ec72c91f042849277669bd",
-    measurementId: "G-VCWDXBXG06",
-};
+function getStorages() {
+    const app = initializeApp(FIREBASE_CONFIG);
+    const readStorage = getStorage(app);
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-// const analytics = getAnalytics(app);
-const storage = getStorage(app);
+    const uploadStorage = new Storage({
+        credentials: SERVICE_ACCOUNT,
+    });
 
-export async function uploadImage(dataUri: string) {
-    if (!dataUri) {
-        throw new Error("Missing dataURI");
-    }
+    return {
+        readStorage,
+        uploadStorage,
+    };
+}
 
-    const filename = `/photos/${uuidv4()}.jpg`;
-    const photoRef = ref(storage, filename);
-    const metadata = { contentType: "image/png" };
+export async function uploadFileV2(data: Buffer, fileName: string, folder: string) {
     try {
-        const res = await uploadString(photoRef, dataUri, "data_url", metadata);
-        return {
-            status: "success",
-            data: res,
-        };
-    } catch {
-        return {
-            status: "failure",
-        };
+        const { uploadStorage } = getStorages();
+        const file = uploadStorage.bucket(FIREBASE_CONFIG.storageBucket).file(`${folder}/${fileName}`);
+        await file.save(data, {
+            gzip: true,
+            metadata: {
+                metadata: {
+                    firebaseStorageDownloadTokens: uuidv4(),
+                },
+            },
+        });
+        return fileName;
+    } catch (e: any) {
+        console.error(`failed to upload file ${fileName}`, e.message);
+        return "";
     }
 }
 
+export const cloudStorageUploaderHandler: UploadHandler = async ({ data, filename, name }) => {
+    if (!filename) {
+        return name;
+    }
+
+    const chunks = [];
+    for await (const chunk of data) {
+        chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
+    return await uploadFileV2(buffer, filename, name === "image" ? "photos" : "audio");
+};
+
 export async function getImageUrl(name: string) {
-    const imageRef = ref(storage, `photos/${name}`);
+    const { readStorage } = getStorages();
+
+    const imageRef = ref(readStorage, `photos/${name}`);
+    const url = await getDownloadURL(imageRef);
+    return url;
+}
+
+export async function getAudioUrl(name: string) {
+    const { readStorage } = getStorages();
+
+    const imageRef = ref(readStorage, `audio/${name}`);
     const url = await getDownloadURL(imageRef);
     return url;
 }
