@@ -3,8 +3,23 @@ import type { UploadHandler } from "@remix-run/node";
 import { initializeApp } from "firebase/app";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
-const FIREBASE_CONFIG = JSON.parse(process.env.FIREBASE_CONFIG?.toString() ?? "{}");
-const SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_ACCOUNT?.toString() ?? "{}");
+let FIREBASE_CONFIG: any = {};
+let SERVICE_ACCOUNT: any = {};
+try {
+    FIREBASE_CONFIG = JSON.parse(process.env.FIREBASE_CONFIG?.toString() ?? "{}");
+} catch (e) {
+    console.log(process.env.FIREBASE_CONFIG?.toString());
+    console.log(typeof process.env.FIREBASE_CONFIG?.toString());
+    throw e;
+}
+
+try {
+    SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_ACCOUNT?.toString() ?? "{}");
+} catch (e) {
+    console.log(process.env.SERVICE_ACCOUNT?.toString());
+    console.log(typeof process.env.SERVICE_ACCOUNT?.toString());
+    throw e;
+}
 
 function getStorages() {
     const app = initializeApp(FIREBASE_CONFIG);
