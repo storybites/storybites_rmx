@@ -27,6 +27,9 @@ try {
 }
 
 function getStorages() {
+    console.log(process.env.FIREBASE_CONFIG?.toString());
+    FIREBASE_CONFIG = JSON.parse(process.env.FIREBASE_CONFIG?.toString() ?? "{}");
+
     const app = initializeApp(FIREBASE_CONFIG);
     const readStorage = getStorage(app);
 
