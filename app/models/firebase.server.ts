@@ -97,10 +97,12 @@ function getCreds() {
     // };
 
     console.log(process.env.FIREBASE_CONFIG);
+    console.log(typeof process.env.FIREBASE_CONFIG);
     console.log(process.env.SERVICE_ACCOUNT);
+    console.log(typeof process.env.SERVICE_ACCOUNT);
 
     return {
-        FIREBASE_CONFIG: process.env.FIREBASE_CONFIG,
-        SERVICE_ACCOUNT: process.env.SERVICE_ACCOUNT,
-    };
+        FIREBASE_CONFIG: process.env.FIREBASE_CONFIG ?? {},
+        SERVICE_ACCOUNT: process.env.SERVICE_ACCOUNT ?? {},
+    } as any;
 }
