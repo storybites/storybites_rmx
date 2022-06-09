@@ -27,7 +27,6 @@ export async function uploadFileV2(data: Buffer, fileName: string, folder: strin
         const { uploadStorage } = getStorages();
         const file = uploadStorage.bucket(FIREBASE_CONFIG.storageBucket).file(`${folder}/${fileName}`);
         await file.save(data, {
-            gzip: true,
             metadata: {
                 metadata: {
                     firebaseStorageDownloadTokens: uuidv4(),
@@ -37,7 +36,7 @@ export async function uploadFileV2(data: Buffer, fileName: string, folder: strin
         return fileName;
     } catch (e: any) {
         console.error(`failed to upload file ${fileName}`, e.message);
-        return "";
+        return null;
     }
 }
 

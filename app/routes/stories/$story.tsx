@@ -36,7 +36,12 @@ export default function Story() {
                     <Title order={3}>{story.title}</Title>
                     <Title order={4}>{story.summary}</Title>
                     <Image width={200} height={120} src={story.imageUrl} withPlaceholder />
-                    <AudioPlayer src={story.audioUrl} showJumpControls={false} />
+                    <AudioPlayer
+                        src={story.audioUrl}
+                        showJumpControls={false}
+                        autoPlay={false}
+                        autoPlayAfterSrcChange={false}
+                    />
                 </>
             )}
             {!story && <Loader />}

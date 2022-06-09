@@ -63,7 +63,14 @@ const AudioRecoder = ({ onAudioFileChange }: { onAudioFileChange: (audioFile: Fi
             >
                 End recording
             </Button>
-            {!!player && status === RecorderStatus.STOP && <AudioPlayer src={player.src} showJumpControls={false} />}
+            {!!player && status === RecorderStatus.STOP && (
+                <AudioPlayer
+                    autoPlay={false}
+                    autoPlayAfterSrcChange={false}
+                    src={player.src}
+                    showJumpControls={false}
+                />
+            )}
         </Container>
     );
 };
