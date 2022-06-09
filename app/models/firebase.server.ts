@@ -5,20 +5,25 @@ import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
 let FIREBASE_CONFIG: any = {};
 let SERVICE_ACCOUNT: any = {};
+
 try {
     FIREBASE_CONFIG = JSON.parse(process.env.FIREBASE_CONFIG?.toString() ?? "{}");
 } catch (e) {
-    console.log(process.env.FIREBASE_CONFIG?.toString());
-    console.log(typeof process.env.FIREBASE_CONFIG?.toString());
-    throw e;
+    try {
+        FIREBASE_CONFIG = JSON.parse(process.env.$FIREBASE_CONFIG?.toString() ?? "{}");
+    } catch (e) {
+        throw e;
+    }
 }
 
 try {
     SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_ACCOUNT?.toString() ?? "{}");
 } catch (e) {
-    console.log(process.env.SERVICE_ACCOUNT?.toString());
-    console.log(typeof process.env.SERVICE_ACCOUNT?.toString());
-    throw e;
+    try {
+        SERVICE_ACCOUNT = JSON.parse(process.env.$SERVICE_ACCOUNT?.toString() ?? "{}");
+    } catch (e) {
+        throw e;
+    }
 }
 
 function getStorages() {
