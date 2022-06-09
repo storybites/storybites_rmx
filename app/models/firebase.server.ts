@@ -71,38 +71,17 @@ export async function getAudioUrl(name: string) {
 }
 
 function getCreds() {
-    // const projectId = process.env.PROJECT_ID;
-    // const FIREBASE_CONFIG = {
-    //     apiKey: process.env.API_KEY,
-    //     authDomain: `${projectId}.firebaseapp.com`,
-    //     projectId,
-    //     storageBucket: `${projectId}.appspot.com`,
-    //     messagingSenderId: process.env.MESSAGING_SENDER_ID,
-    //     appId: process.env.APP_ID,
-    //     measurementId: process.env.MEASUREMENT_ID,
-    // };
+    const encodedFirebaseConfig = process.env.FIREBASE_CONFIG;
+    const encodedServiceAccountConfig = process.env.SERVICE_ACCOUNT;
 
-    // const SERVICE_ACCOUNT = {
-    //     type: "service_account",
-    //     project_id: projectId,
-    //     private_key_id: process.env.PRIVATE_KEY_ID,
-    //     private_key: process.env.PRIVATE_KEY,
-    //     client_email: process.env.CLIENT_EMAIL,
-    //     client_id: process.env.CLIENT_ID,
-    //     auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    //     token_uri: "https://oauth2.googleapis.com/token",
-    //     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-    //     client_x509_cert_url:
-    //         "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-rzh6t%40storybites-qa.iam.gserviceaccount.com",
-    // };
-
-    console.log(process.env.FIREBASE_CONFIG);
-    console.log(typeof process.env.FIREBASE_CONFIG);
-    console.log(process.env.SERVICE_ACCOUNT);
-    console.log(typeof process.env.SERVICE_ACCOUNT);
+    if (!encodedFirebaseConfig || !encodedServiceAccountConfig) {
+        throw new Error("missing configs");
+    }
+    const decodedFirebaseConfig = Buffer.from(encodedFirebaseConfig, "base64").toString();
+    const decodedServiceAccountConfig = Buffer.from(encodedServiceAccountConfig, "base64").toString();
 
     return {
-        FIREBASE_CONFIG: process.env.FIREBASE_CONFIG ?? {},
-        SERVICE_ACCOUNT: process.env.SERVICE_ACCOUNT ?? {},
+        FIREBASE_CONFIG: JSON.parse(decodedFirebaseConfig),
+        SERVICE_ACCOUNT: JSON.parse(decodedServiceAccountConfig),
     } as any;
 }
