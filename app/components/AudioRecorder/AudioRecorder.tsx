@@ -47,7 +47,7 @@ const AudioRecoder = ({ onAudioFileChange }: { onAudioFileChange: (audioFile: Fi
     }, [status]);
 
     return (
-        <Container>
+        <Container className="flex flex-col gap-2 sm:flex-row">
             {status === RecorderStatus.RECORDING && <div>Time Remaining: -</div>}
             <Button
                 variant="outline"

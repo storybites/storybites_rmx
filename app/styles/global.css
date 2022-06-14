@@ -7,3 +7,7 @@
 [data-rsbs-overlay] {
     z-index: 9001 !important;
 }
+
+* {
+    font-family: "Karla", sans-serif !important;
+}

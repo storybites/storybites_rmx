@@ -93,7 +93,7 @@ export default function StoriesView() {
         <>
             <div className="h-full w-full bg-white">
                 <div
-                    className="absolute top-0 left-0 z-[9999] box-border hidden h-full w-1/5 bg-white sm:block"
+                    className="absolute top-0 left-0 z-[9999] box-border hidden h-full w-1/5 bg-white drop-shadow-lg sm:block"
                     style={{ minWidth: 300 }}
                 >
                     <StoriesPage showStoriesList={!params.story} stories={stories} />
