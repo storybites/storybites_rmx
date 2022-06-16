@@ -69,6 +69,7 @@ export default function NewStory() {
     const audioInputRef = useRef<HTMLInputElement>(null);
     const Map = useClientComponent(MapContainer);
     const [latLong, setLatLong] = useState<{ lat: number; long: number } | null>(null);
+    const [mapKey, setMapKey] = useState(0);
 
     function handleImageSetting(src: File | string | null) {
         if (!src) {
@@ -203,8 +204,17 @@ export default function NewStory() {
                     <div className="mb-2 flex flex-col items-center justify-center sm:flex-row">
                         <AudioRecoder onAudioFileChange={handleAudioFileChange} />
                     </div>
-                    <div className="h-60 w-full">
-                        <Map stories={[]} markCurrentLocation markOnClick onLocationUpdate={setLatLong} />
+                    <div className="h-80 w-full">
+                        <Map stories={[]} markCurrentLocation markOnClick onLocationUpdate={setLatLong} key={mapKey} />
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <Button
+                            onClick={() => {
+                                setMapKey(mapKey + 1);
+                            }}
+                        >
+                            Recenter
+                        </Button>
                     </div>
 
                     <input name="image" type="file" ref={imageInputRef} hidden />
