@@ -10,25 +10,37 @@ import {
     ZoomControl,
 } from "react-leaflet";
 import { usePosition } from "use-position";
-import lottie from "lottie-web";
-import loadingMap from "../../assets/lottie/finding_location.json";
+import { Loader, Text } from "@mantine/core";
 import type { Stories } from "@prisma/client";
 import { useNavigate, useParams } from "@remix-run/react";
-import type { LatLngBounds } from "leaflet";
+import type { LatLng, LatLngBounds } from "leaflet";
 
-function TileLayer({ onUpdateLocation }: { onUpdateLocation: (bounds: LatLngBounds) => void }) {
+function TileLayer({
+    onUpdateLocation,
+    onClickMap,
+}: {
+    onUpdateLocation?: (bounds: LatLngBounds) => void;
+    onClickMap?: (latLong: LatLng) => void;
+}) {
     const map = useMapEvents({
         moveend: function (a) {
-            onUpdateLocation(map.getBounds());
+            if (onUpdateLocation) {
+                onUpdateLocation(map.getBounds());
+            }
+        },
+        click: function (e) {
+            if (onClickMap) {
+                onClickMap(e.latlng);
+            }
         },
     });
 
     return (
         <_TileLayer
-            // attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-            // url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+            url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+            // attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
     );
 }
@@ -38,7 +50,7 @@ interface IMarker {
     story: Stories;
 }
 
-const Marker = ({ isOpen, story }: IMarker) => {
+const StoryMarker = ({ isOpen, story }: IMarker) => {
     const navigate = useNavigate();
     const map = useMap();
 
@@ -75,39 +87,57 @@ const Marker = ({ isOpen, story }: IMarker) => {
 };
 const MapContainer = ({
     stories,
-    onUpdateLocation,
+    onUpdateLocationBounds,
+    markCurrentLocation,
+    markOnClick,
+    onLocationUpdate,
 }: {
     stories: Stories[];
-    onUpdateLocation: (bounds: LatLngBounds) => void;
+    onUpdateLocationBounds?: (bounds: LatLngBounds) => void;
+    onLocationUpdate?: (latLong: { lat: number; long: number }) => void;
+    markCurrentLocation?: boolean;
+    markOnClick?: boolean;
 }) => {
     const loadingMapContainer = useRef<any>(null);
     const { latitude, longitude } = usePosition(false);
     const params = useParams();
+    const [markerLocation, setMarkerLocation] = useState<LatLng | null>(null);
 
     useEffect(() => {
-        lottie.loadAnimation({
-            container: loadingMapContainer.current,
-            renderer: "svg",
-            loop: true,
-            autoplay: true,
-            animationData: loadingMap,
-        });
-    }, []);
+        if (onLocationUpdate && latitude && longitude) {
+            onLocationUpdate({ lat: latitude, long: longitude });
+        }
+    }, [latitude, longitude]);
 
     return (
         <>
             {(!latitude || !longitude) && (
                 <div className=" flex h-full w-full items-center justify-center">
                     <div className="hidden w-1/5 sm:block"></div>
-                    <div className="h-full w-full sm:h-2/5 sm:w-2/5" ref={loadingMapContainer}></div>
+                    <div className="flex flex-col items-center justify-center " ref={loadingMapContainer}>
+                        <Loader />
+                        <Text color="gray">Finding location</Text>
+                    </div>
+                    <div className="h-1/5 sm:hidden"></div>
                 </div>
             )}
             {latitude && longitude && (
                 <_MapContainer center={[latitude, longitude]} zoom={15} scrollWheelZoom={true} zoomControl={false}>
-                    <TileLayer onUpdateLocation={onUpdateLocation} />
+                    <TileLayer
+                        onUpdateLocation={onUpdateLocationBounds}
+                        onClickMap={(latLng) => {
+                            setMarkerLocation(latLng);
+                            if (onLocationUpdate) {
+                                onLocationUpdate({ lat: latLng.lat, long: latLng.lng });
+                            }
+                        }}
+                    />
                     {stories.map((story) => {
-                        return <Marker isOpen={params.story === story.id} key={story.id} story={story} />;
+                        return <StoryMarker isOpen={params.story === story.id} key={story.id} story={story} />;
                     })}
+                    {((markerLocation && markOnClick) || markCurrentLocation) && (
+                        <_Marker position={markerLocation ?? { lat: latitude, lng: longitude }}></_Marker>
+                    )}
                     <ZoomControl position="topright" />
                 </_MapContainer>
             )}

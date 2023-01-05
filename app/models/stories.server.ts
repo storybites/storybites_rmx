@@ -1,6 +1,6 @@
 import type { Stories } from "@prisma/client";
 import { prisma } from "~/db.server";
-import { getImageUrl } from "./firebase.server";
+import { getAudioUrl, getImageUrl } from "./firebase.server";
 
 export type StoryData = Stories & { imageUrl: string };
 export type { Stories } from "@prisma/client";
@@ -14,7 +14,11 @@ export async function getStory(id: string): Promise<StoryData | null> {
     }
 
     const imageUrl = await getImageUrl(story?.imageName);
-    return Object.assign({}, story, { imageUrl: imageUrl });
+    let audioUrl = story?.audioUrl;
+    try {
+        audioUrl = await getAudioUrl(story?.audioUrl);
+    } catch {}
+    return Object.assign({}, story, { imageUrl: imageUrl, audioUrl: audioUrl });
 }
 
 interface IGetStoriesBase {
@@ -81,31 +85,24 @@ function getBoundsfromCorners(northEast: IGetStoriesBounds["northEast"], southWe
     };
 }
 
-// export function createNote({
-//   body,
-//   title,
-//   userId,
-// }: Pick<Note, "body" | "title"> & {
-//   userId: User["id"];
-// }) {
-//   return prisma.note.create({
-//     data: {
-//       title,
-//       body,
-//       user: {
-//         connect: {
-//           id: userId,
-//         },
-//       },
-//     },
-//   });
-// }
-
-// export function deleteNote({
-//   id,
-//   userId,
-// }: Pick<Note, "id"> & { userId: User["id"] }) {
-//   return prisma.note.deleteMany({
-//     where: { id, userId },
-//   });
-// }
+export function createStory({
+    title,
+    imageName,
+    audioUrl,
+    lat,
+    long,
+    ownerEmail,
+    summary,
+}: Pick<Stories, "title" | "imageName" | "audioUrl" | "lat" | "long" | "ownerEmail" | "summary">) {
+    return prisma.stories.create({
+        data: {
+            title,
+            audioUrl,
+            imageName,
+            lat,
+            long,
+            ownerEmail,
+            summary,
+        },
+    });
+}
